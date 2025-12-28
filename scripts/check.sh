@@ -43,7 +43,7 @@ read_verilog -D SIMLIB_NOMEM -D SIMLIB_NOCHECKS $( yosys-config --datdir )/simli
 read_verilog $( yosys-config --datdir )/simcells.v;
 hierarchy -check -top $job;
 proc;; flatten;;
-write_ilang syn.il
+write_rtlil syn.il
 "
 
 mkdir -p ../../cache_${syn}
@@ -61,7 +61,7 @@ cp syn.il ../../cache_${syn}/$job.il
 	echo "proc"
 	echo "rename $job ${job}_rtl"
 
-	echo "read_ilang syn.il"
+	echo "read_rtlil syn.il"
 	echo "rename $job ${job}_syn"
 
 	echo "read_verilog top.v"
