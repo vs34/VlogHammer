@@ -83,7 +83,7 @@ done
 {
 	egrep '^ *(module|input|output)' rtl.v | sed 's/ y/ y1, y2/'
 	sed "/^ *module/ ! d; s/.*(//; s/[a-x0-9]\+/.\0(\0)/g; s/y[0-9]*//g; s/, *)/)/; s/^/  ${job}_1 ${job}_1 (/;" rtl.v
-	sed "/^ *module/ ! d; s/.*(//; s/[a-x0-9]\+/.\0(\0)/g; s/y[0-9]*//g; s/, *)/)/; s/^/  ${job}_1 ${job}_2 (/;" rtl.v
+	sed "/^ *module/ ! d; s/.*(//; s/[a-x0-9]\+/.\0(\0)/g; s/y[0-9]*//g; s/, *)/)/; s/^/  ${job}_2 ${job}_2 (/;" rtl.v
 	echo "endmodule"
 } > top.v
 
