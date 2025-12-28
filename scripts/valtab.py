@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import re
 import sys
 import getopt
+from functools import cmp_to_key
 
 opts, args = getopt.getopt(sys.argv, "", [])
 args.pop(0)
@@ -94,7 +95,7 @@ for idx in data.keys():
   if len(bitpartitions) != 0:
     for part in bitpartitions:
       vars_found_diff = False
-      ref_lst = data[idx]['split_outputs'].keys()[0]
+      ref_lst = list(data[idx]['split_outputs'].keys())[0]
       for lst in data[idx]['split_outputs'].keys():
         if data[idx]['split_outputs'][lst][part[2]] != data[idx]['split_outputs'][ref_lst][part[2]]:
           vars_found_diff = True
@@ -145,7 +146,7 @@ for idx in sorted(data.keys()):
       first_var = False
     for lst in sorted(d['split_outputs'].keys()):
       first_var = True
-      for var in sorted(d['split_outputs'][lst].keys(), cmp=outvar_compare):
+      for var in sorted(d['split_outputs'][lst].keys(), key=cmp_to_key(outvar_compare)):
         if first_var:
           print ('<tr><td class="valsimlist" rowspan="{}">{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
                 len(d['split_outputs'][lst].keys()), pretty_list(lst), var, d['split_outputs'][lst][var][0], d['split_outputs'][lst][var][1]))
