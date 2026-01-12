@@ -82,8 +82,8 @@ done
 
 {
 	egrep '^ *(module|input|output)' rtl.v | sed 's/ y/ y1, y2/'
-	sed "/^ *module/ ! d; s/.*(//; s/[a-x0-9]\+/.\0(\0)/g; s/y[0-9]*/.\0(\01)/g; s/^/  ${job}_1 ${job}_1 (/;" rtl.v
-	sed "/^ *module/ ! d; s/.*(//; s/[a-x0-9]\+/.\0(\0)/g; s/y[0-9]*/.\0(\02)/g; s/^/  ${job}_2 ${job}_2 (/;" rtl.v
+	sed "/^ *module/ ! d; s/.*(//; s/[a-x0-9]\+/.\0(\0)/g; s/y[0-9]*//g; s/, *)/)/; s/^/  ${job}_1 ${job}_1 (/;" rtl.v
+	sed "/^ *module/ ! d; s/.*(//; s/[a-x0-9]\+/.\0(\0)/g; s/y[0-9]*//g; s/, *)/)/; s/^/  ${job}_2 ${job}_2 (/;" rtl.v
 	echo "endmodule"
 } > top.v
 
@@ -109,7 +109,7 @@ for q in ${SYN_LIST} rtl; do
 			echo "read_verilog rtl.v"
 			sat_proof="-set-def-inputs -prove-x y1 y2"
 		else
-			echo "read_ilang syn_$p.il"
+			echo "read_rtlil syn_$p.il"
 		fi
 		echo "rename $job ${job}_1"
 
@@ -117,7 +117,7 @@ for q in ${SYN_LIST} rtl; do
 			echo "read_verilog rtl.v"
 			sat_proof="-set-def-inputs -prove-x y2 y1"
 		else
-			echo "read_ilang syn_$q.il"
+			echo "read_rtlil syn_$q.il"
 		fi
 		echo "rename $job ${job}_2"
 
@@ -143,7 +143,7 @@ for q in ${SYN_LIST} rtl; do
 		fi
 	else
 		echo $( for input in $( echo $inputs | tr -d , ); do grep "^ * \\\\$input " test.${p}.${q}.log |
-				gawk '{ print $4; }'; done | tr -d '\n' ) >> fail_patterns.txt
+				awk '{ print $4; }'; done | tr -d '\n' ) >> fail_patterns.txt
 		echo FAIL > result.${p}.${q}.txt
 	fi
 
@@ -153,7 +153,7 @@ done; done
 
 extra_patterns="$( grep '^ *// *PATTERN:' rtl.v | cut -f2- -d: )"
 for ((i=0; i < 30; i=i+1)); do
-	extra_patterns="$extra_patterns $( echo $job$i | sha1sum | gawk "{ print \"160'h\" \$1; }" )"
+	extra_patterns="$extra_patterns $( echo $job$i | sha1sum | awk "{ print \"160'h\" \$1; }" )"
 done
 
 {
@@ -279,7 +279,7 @@ if [[ " ${SIM_LIST} " == *" yosim "* ]]; then
 		echo "read_verilog rtl.v; proc;;"
 		echo "rename ${job} ${job}_rtl"
 		for p in ${SYN_LIST}; do
-			echo "read_ilang syn_${p}.il"
+			echo "read_rtlil syn_${p}.il"
 			echo "rename ${job} ${job}_${p}"
 		done
 		echo -n "eval -vloghammer_report ${job}_ "
@@ -358,7 +358,7 @@ done
 
 for p in ${SYN_LIST} rtl; do
 for q in ${SIM_LIST}; do
-	echo $( grep '++RPT++' sim_$q.log | sed 's,.*++RPT++ ,,' | grep " $p\$" | gawk '{ print $(NF-1); }' | md5sum | gawk '{ print $1; }' ) > result.${p}.${q}.txt
+	echo $( grep '++RPT++' sim_$q.log | sed 's,.*++RPT++ ,,' | grep " $p\$" | awk '{ print $(NF-1); }' | md5sum | awk '{ print $1; }' ) > result.${p}.${q}.txt
 done; done
 
 echo "#00ff00" > color_PASS.txt
@@ -376,7 +376,7 @@ elif cmp result.rtl.isim.txt result.rtl.yosim.txt && cmp result.rtl.icarus.txt r
 	echo "#00ff00" > color_$( cat result.rtl.yosim.txt ).txt
 	goodsim="yosim"
 else
-	goodcode=$( egrep -h '^[a-f0-9]+$' result.*.txt | sort | uniq -c | sort -rn | gawk 'NR == 1 { a=$1; x=$2; } NR == 2 { b=$1; } END { if (a>b+2) print x; else print "NO_SIM_COMMON"; }' )
+	goodcode=$( egrep -h '^[a-f0-9]+$' result.*.txt | sort | uniq -c | sort -rn | awk 'NR == 1 { a=$1; x=$2; } NR == 2 { b=$1; } END { if (a>b+2) print x; else print "NO_SIM_COMMON"; }' )
 	echo "#00ff00" > color_$goodcode.txt
 	for q in ${SIM_LIST}; do
 		if grep -q $goodcode result.rtl.$q.txt; then
@@ -496,7 +496,7 @@ fi
 			$y =~ /^(module|input|wire|reg|integer|localparam|output|assign|signed|if|else|for|begin|end|case|endcase|task|endtask|function|endfunction|always|initial|endmodule|\$(display|unsigned|signed))$/ ? "#080" : "#008", $y)!eg' )</small></pre>"
 
 	echo "<!-- VALUES:BEGIN -->"
-	python ../../scripts/valtab.py ${SIM_LIST}
+	python3 ../../scripts/valtab.py ${SIM_LIST}
 	echo "<!-- VALUES:END -->"
 	echo "<!-- REPORT:END -->"
 } > report.html
